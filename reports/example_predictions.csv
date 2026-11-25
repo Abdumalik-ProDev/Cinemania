@@ -1,0 +1,4 @@
+category,review,rnn_prediction,rnn_confidence,rnn_prob_negative,rnn_prob_positive,transformer_prediction,transformer_confidence,transformer_prob_negative,transformer_prob_positive
+negative-oriented,"I had been looking forward to this film for a long time, but I did not like it at all.",negative,0.9995896509208251,0.9995896509208251,0.0004103490791749209,negative,0.8308300971984863,0.8308300971984863,0.16916990280151367
+positive-oriented,"The cast is excellent, and the plot is very interesting.",positive,0.9993677735328674,0.0006322264671325684,0.9993677735328674,positive,0.998967170715332,0.0010327947093173862,0.998967170715332
+mixed,"The film's visual effects are good, but the story is weak.",negative,0.9920398350805044,0.9920398350805044,0.007960164919495583,negative,0.9974977374076843,0.9974977374076843,0.002502279821783304

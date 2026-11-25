@@ -1,0 +1,254 @@
+{
+  "seed": 42,
+  "device": "cuda",
+  "dataset_path": "data/raw/train.xlsx",
+  "cleaned_data_path": "data/preproccessed/cleaned_data.csv",
+  "cleaning": {
+    "raw_rows": 25000,
+    "raw_label_counts": {
+      "neg": 12500,
+      "pos": 12500
+    },
+    "dropped_missing_or_empty_reviews": 0,
+    "dropped_missing_sentiments": 0,
+    "canonicalized_aliases": {
+      "pos->positive": 12500,
+      "neg->negative": 12500
+    },
+    "duplicate_pair_rows": 96,
+    "duplicate_review_rows": 96,
+    "deduplicated": true,
+    "cleaned_rows": 24904,
+    "cleaned_class_distribution": {
+      "positive": 12472,
+      "negative": 12432
+    }
+  },
+  "splits": {
+    "pool_total": 3000,
+    "pool_distribution": {
+      "positive": 1500,
+      "negative": 1500
+    },
+    "transformer_train_total": 2500,
+    "transformer_train_distribution": {
+      "negative": 1250,
+      "positive": 1250
+    },
+    "rnn_train_total": 1500,
+    "rnn_train_distribution": {
+      "negative": 750,
+      "positive": 750
+    },
+    "shared_test_total": 500,
+    "shared_test_distribution": {
+      "positive": 250,
+      "negative": 250
+    }
+  },
+  "rnn": {
+    "device": "cuda",
+    "vocab_size": 4002,
+    "train_samples": 1500,
+    "test_samples": 500,
+    "epoch_losses": [
+      {
+        "epoch": 1,
+        "train_loss": 0.7096729771296183
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.6104518005053202
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.5379421011606852
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.45595935845375063
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.38233122452100116
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.27814133167266847
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.18391525427500408
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.1074683321416378
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.0630561949412028
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.03172485334177812
+      }
+    ],
+    "test_metrics": {
+      "accuracy": 0.524,
+      "precision": 0.5234375,
+      "recall": 0.536,
+      "f1": 0.5296442687747036,
+      "loss": 2.0847183399200437
+    },
+    "artifacts": {
+      "model_path": "/home/prodev/Portfolio/AI-Engineering/DL-Transformer-Project/artifacts/rnn/sentiment_rnn.pt",
+      "vocab_path": "/home/prodev/Portfolio/AI-Engineering/DL-Transformer-Project/artifacts/rnn/vocab.json",
+      "config_path": "/home/prodev/Portfolio/AI-Engineering/DL-Transformer-Project/artifacts/rnn/config.json"
+    }
+  },
+  "transformer": {
+    "device": "cuda",
+    "model_name": "distilbert-base-uncased",
+    "train_samples": 2500,
+    "test_samples": 500,
+    "effective_train_batch_size": 8,
+    "gradient_accumulation_steps": 1,
+    "final_train_loss": 0.2538416885847228,
+    "log_history": [
+      {
+        "loss": 0.5447931671142578,
+        "grad_norm": 4.405850887298584,
+        "learning_rate": 4.472843450479233e-05,
+        "epoch": 0.3194888178913738,
+        "step": 100
+      },
+      {
+        "loss": 0.3997349166870117,
+        "grad_norm": 7.631012439727783,
+        "learning_rate": 3.940362087326944e-05,
+        "epoch": 0.6389776357827476,
+        "step": 200
+      },
+      {
+        "loss": 0.3728511810302734,
+        "grad_norm": 8.088013648986816,
+        "learning_rate": 3.407880724174654e-05,
+        "epoch": 0.9584664536741214,
+        "step": 300
+      },
+      {
+        "loss": 0.23220829010009766,
+        "grad_norm": 6.0198564529418945,
+        "learning_rate": 2.8753993610223644e-05,
+        "epoch": 1.2779552715654952,
+        "step": 400
+      },
+      {
+        "loss": 0.2529597854614258,
+        "grad_norm": 19.391897201538086,
+        "learning_rate": 2.3429179978700748e-05,
+        "epoch": 1.5974440894568689,
+        "step": 500
+      },
+      {
+        "loss": 0.24795787811279296,
+        "grad_norm": 0.844070315361023,
+        "learning_rate": 1.8104366347177852e-05,
+        "epoch": 1.9169329073482428,
+        "step": 600
+      },
+      {
+        "loss": 0.11355121612548828,
+        "grad_norm": 2.2827444076538086,
+        "learning_rate": 1.2779552715654951e-05,
+        "epoch": 2.236421725239617,
+        "step": 700
+      },
+      {
+        "loss": 0.06031975269317627,
+        "grad_norm": 0.150752454996109,
+        "learning_rate": 7.4547390841320565e-06,
+        "epoch": 2.5559105431309903,
+        "step": 800
+      },
+      {
+        "loss": 0.10517657279968262,
+        "grad_norm": 0.026082301512360573,
+        "learning_rate": 2.1299254526091587e-06,
+        "epoch": 2.8753993610223643,
+        "step": 900
+      },
+      {
+        "train_runtime": 66.7586,
+        "train_samples_per_second": 112.345,
+        "train_steps_per_second": 14.066,
+        "total_flos": 496752744960000.0,
+        "train_loss": 0.2538416885847228,
+        "epoch": 3.0,
+        "step": 939
+      },
+      {
+        "eval_loss": 0.5396918654441833,
+        "eval_accuracy": 0.88,
+        "eval_precision": 0.8861788617886179,
+        "eval_recall": 0.872,
+        "eval_f1": 0.8790322580645161,
+        "eval_runtime": 1.2799,
+        "eval_samples_per_second": 390.661,
+        "eval_steps_per_second": 25.002,
+        "epoch": 3.0,
+        "step": 939
+      }
+    ],
+    "test_metrics": {
+      "loss": 0.5396918654441833,
+      "accuracy": 0.88,
+      "precision": 0.8861788617886179,
+      "recall": 0.872,
+      "f1": 0.8790322580645161
+    },
+    "artifacts": {
+      "checkpoint_dir": "/home/prodev/Portfolio/AI-Engineering/DL-Transformer-Project/artifacts/transformer/checkpoint",
+      "trainer_output_dir": "/home/prodev/Portfolio/AI-Engineering/DL-Transformer-Project/artifacts/transformer/trainer_output",
+      "log_history_path": "/home/prodev/Portfolio/AI-Engineering/DL-Transformer-Project/artifacts/transformer/trainer_output/log_history.json"
+    }
+  },
+  "example_predictions": [
+    {
+      "category": "negative-oriented",
+      "review": "I had been looking forward to this film for a long time, but I did not like it at all.",
+      "rnn_prediction": "negative",
+      "rnn_confidence": 0.9995896509208251,
+      "rnn_prob_negative": 0.9995896509208251,
+      "rnn_prob_positive": 0.0004103490791749209,
+      "transformer_prediction": "negative",
+      "transformer_confidence": 0.8308300971984863,
+      "transformer_prob_negative": 0.8308300971984863,
+      "transformer_prob_positive": 0.16916990280151367
+    },
+    {
+      "category": "positive-oriented",
+      "review": "The cast is excellent, and the plot is very interesting.",
+      "rnn_prediction": "positive",
+      "rnn_confidence": 0.9993677735328674,
+      "rnn_prob_negative": 0.0006322264671325684,
+      "rnn_prob_positive": 0.9993677735328674,
+      "transformer_prediction": "positive",
+      "transformer_confidence": 0.998967170715332,
+      "transformer_prob_negative": 0.0010327947093173862,
+      "transformer_prob_positive": 0.998967170715332
+    },
+    {
+      "category": "mixed",
+      "review": "The film's visual effects are good, but the story is weak.",
+      "rnn_prediction": "negative",
+      "rnn_confidence": 0.9920398350805044,
+      "rnn_prob_negative": 0.9920398350805044,
+      "rnn_prob_positive": 0.007960164919495583,
+      "transformer_prediction": "negative",
+      "transformer_confidence": 0.9974977374076843,
+      "transformer_prob_negative": 0.9974977374076843,
+      "transformer_prob_positive": 0.002502279821783304
+    }
+  ]
+}

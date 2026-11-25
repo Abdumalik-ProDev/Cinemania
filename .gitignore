@@ -1,0 +1,21 @@
+# Raw and preprocessed datasets (do not commit large local datasets)
+data/raw/
+data/preproccessed/
+
+# Trained model checkpoints, vocabularies, and intermediate splits
+artifacts/
+
+# Virtual environments & Python caches
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Experiment tracking & temporary files
+wandb/
+*.tmp
+.DS_Store

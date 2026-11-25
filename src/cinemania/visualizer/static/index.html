@@ -1,0 +1,1983 @@
+<!doctype html>
+<!-- Design system shaped with unslop by Damir Sokolovsky (@heydamir), CC BY 4.0 -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cinemania — Neural Inspector</title>
+  <style>
+    :root {
+      --bg-deep: #0f0f10;
+      --bg: #141415;
+      --surface: #19191b;
+      --raised: #232325;
+      --hairline: rgba(237, 237, 237, 0.08);
+      --hairline-strong: rgba(237, 237, 237, 0.14);
+      --text: #ededed;
+      --text-secondary: #a1a1a6;
+      --text-muted: #85858b;
+      --pos: #4cc38a;
+      --neg: #e5484d;
+      --amber: #e5a93c;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection {
+      background: rgba(237, 237, 237, 0.18);
+      color: var(--text);
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(237, 237, 237, 0.12);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(237, 237, 237, 0.22); }
+
+    :focus-visible {
+      outline: 2px solid var(--text-secondary);
+      outline-offset: 2px;
+    }
+
+    .shell {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 272px;
+      flex-shrink: 0;
+      background: var(--bg-deep);
+      border-right: 1px solid var(--hairline);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 32px;
+      padding: 0 8px;
+    }
+
+    .brand-mark {
+      width: 18px;
+      height: 18px;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .brand-name {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .section-label {
+      margin: 24px 0 8px;
+      padding: 0 8px;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-row {
+      height: 36px;
+      padding: 0 8px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease);
+    }
+
+    .nav-row:hover {
+      background: rgba(237, 237, 237, 0.04);
+      color: var(--text);
+    }
+
+    .nav-row.active {
+      background: var(--raised);
+      border-color: var(--hairline);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .nav-row .icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+
+    .nav-row.active .icon { color: var(--text); }
+
+    .nav-row .row-label {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .keycap {
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1;
+      padding: 3px 5px;
+      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--hairline-strong);
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .input-box {
+      padding: 0 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 84px;
+      resize: vertical;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--hairline-strong);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: var(--sans);
+      font-size: 13px;
+      line-height: 1.45;
+      transition: border-color 140ms var(--ease);
+    }
+
+    textarea::placeholder { color: var(--text-muted); }
+    textarea:focus { border-color: rgba(237, 237, 237, 0.3); }
+
+    .btn-primary {
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: var(--text);
+      color: var(--bg-deep);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 140ms var(--ease), transform 120ms var(--ease), opacity 140ms var(--ease);
+    }
+
+    .btn-primary:hover:not(:disabled) { background: #ffffff; }
+    .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .status-line {
+      min-height: 16px;
+      font-size: 12px;
+      color: var(--neg);
+      padding: 0 4px;
+    }
+
+    .preset-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .preset-dot.positive { background: var(--pos); }
+    .preset-dot.negative { background: var(--neg); }
+
+    .sidebar-foot {
+      margin-top: auto;
+      padding: 16px 8px 0;
+      border-top: 1px solid var(--hairline);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Main Workspace */
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 20px 32px 32px;
+      max-width: 1560px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .topbar {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .crumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .crumb-sep { color: var(--text-muted); }
+
+    .shortcuts {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .shortcut-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .page-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .page-subtitle {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 4-Stat Row (Numbers Only) */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .stat-delta {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-delta.positive { color: var(--pos); }
+    .stat-delta.negative { color: var(--neg); }
+
+    /* Asymmetric Workbench */
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 304px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stage-panel {
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .stage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .stage-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .stage-meta {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .legend-inline {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .legend-key {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .canvas-well {
+      position: relative;
+      background: var(--bg-deep);
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+    }
+
+    #rnnCanvas { height: 396px; cursor: crosshair; }
+    #trajCanvas { height: 108px; cursor: pointer; border-top: 1px solid var(--hairline); }
+    #tfCanvas { height: 480px; cursor: crosshair; }
+
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: var(--raised);
+      border: 1px solid var(--hairline-strong);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text);
+      display: none;
+      z-index: 20;
+      font-variant-numeric: tabular-nums;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      max-width: 260px;
+      white-space: pre-line;
+    }
+
+    /* Transport Controls */
+    .transport {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-icon {
+      height: 32px;
+      min-width: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--hairline-strong);
+      background: var(--raised);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background-color 140ms var(--ease), border-color 140ms var(--ease), transform 120ms var(--ease);
+    }
+
+    .btn-icon:hover { background: #2c2c2f; }
+    .btn-icon:active { transform: scale(0.98); }
+
+    .scrubber {
+      flex: 1;
+      min-width: 140px;
+      accent-color: var(--text);
+      cursor: pointer;
+    }
+
+    select {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--hairline-strong);
+      background: var(--raised);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .token-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .token-btn {
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 6px;
+      border: 1px solid var(--hairline);
+      background: var(--bg);
+      color: var(--text-secondary);
+      font-family: var(--mono);
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background-color 140ms var(--ease), border-color 140ms var(--ease), color 140ms var(--ease);
+    }
+
+    .token-btn:hover {
+      border-color: var(--hairline-strong);
+      color: var(--text);
+    }
+
+    .token-btn.active {
+      background: var(--raised);
+      border-color: rgba(237, 237, 237, 0.35);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .unk-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+
+    /* Right Inspector Rail */
+    .rail-panel {
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .rail-block {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .rail-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .rail-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .rail-meta {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ranked-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ranked-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 10px;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+
+    .ranked-row.highlight {
+      background: var(--raised);
+      border-color: var(--hairline);
+    }
+
+    .ranked-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ranked-val {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .ranked-bar-track {
+      grid-column: 1 / -1;
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(237, 237, 237, 0.06);
+      overflow: hidden;
+    }
+
+    .ranked-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+    }
+
+    .strip-grid {
+      display: grid;
+      grid-template-columns: repeat(16, minmax(0, 1fr));
+      gap: 2px;
+      padding: 8px;
+      background: var(--bg-deep);
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+    }
+
+    .strip-cell {
+      height: 12px;
+      border-radius: 2px;
+      background: rgba(237, 237, 237, 0.06);
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1120px) {
+      .workbench { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 820px) {
+      .shell { flex-direction: column; }
+      .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--hairline);
+      }
+      .main { padding: 16px; }
+      .shortcuts { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Inspector controls">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="10" cy="10" r="7.5" />
+          <circle cx="10" cy="10" r="2.5" />
+          <path d="M10 2.5v2.5M10 15v2.5M2.5 10H5M15 10h2.5" />
+        </svg>
+        <span class="brand-name">Cinemania</span>
+      </div>
+
+      <p class="section-label">Models</p>
+      <div class="nav-list" role="tablist" aria-label="Model architecture">
+        <button id="navRnn" class="nav-row active" role="tab" aria-selected="true" type="button">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="6" cy="6" r="2.5" />
+            <circle cx="6" cy="18" r="2.5" />
+            <circle cx="18" cy="12" r="2.5" />
+            <path d="M8.2 7.2 15.6 10.9M8.2 16.8 15.6 13.1" />
+          </svg>
+          <span class="row-label">SentimentRNN</span>
+          <span class="keycap">1</span>
+        </button>
+        <button id="navTf" class="nav-row" role="tab" aria-selected="false" type="button">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M12 3 3 8l9 5 9-5-9-5Z" />
+            <path d="m3 12 9 5 9-5" />
+            <path d="m3 16 9 5 9-5" />
+          </svg>
+          <span class="row-label">DistilBERT</span>
+          <span class="keycap">2</span>
+        </button>
+      </div>
+
+      <p class="section-label">Review input</p>
+      <div class="input-box">
+        <textarea id="reviewInput" placeholder="Enter an English movie review"></textarea>
+        <button id="analyzeBtn" class="btn-primary" type="button">Analyze review</button>
+        <div id="statusMsg" class="status-line" role="status" aria-live="polite"></div>
+      </div>
+
+      <p class="section-label">Sample reviews</p>
+      <div class="nav-list" id="presetList"></div>
+
+      <div class="sidebar-foot">
+        <span id="modeLabel">Loading</span>
+        <span>PyTorch</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="crumb">
+          <span id="crumbModel">SentimentRNN</span>
+          <span class="crumb-sep">/</span>
+          <span id="crumbDetail">Embedding(128) to RNN(256) to Sigmoid</span>
+        </div>
+        <div class="shortcuts" aria-label="Keyboard shortcuts">
+          <span class="shortcut-item"><span class="keycap">Space</span> Play</span>
+          <span class="shortcut-item"><span class="keycap">&larr;</span><span class="keycap">&rarr;</span> Step</span>
+          <span class="shortcut-item"><span class="keycap">1</span><span class="keycap">2</span> Model</span>
+        </div>
+      </div>
+
+      <div class="page-head">
+        <h1 class="page-title" id="pageTitle">Recurrent signal trace</h1>
+        <span class="page-subtitle" id="pageTimecode">00 / 00</span>
+      </div>
+
+      <section class="stats-row" aria-label="Model verdict summary">
+        <div class="stat-card">
+          <span class="stat-label">SentimentRNN</span>
+          <span class="stat-value" id="statRnnConf">—</span>
+          <span class="stat-delta" id="statRnnVerdict">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">DistilBERT</span>
+          <span class="stat-value" id="statTfConf">—</span>
+          <span class="stat-delta" id="statTfVerdict">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Review tokens</span>
+          <span class="stat-value" id="statTokens">—</span>
+          <span class="stat-delta" id="statOov">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label" id="statActiveLabel">Current step</span>
+          <span class="stat-value" id="statActiveVal">—</span>
+          <span class="stat-delta" id="statActiveSub">—</span>
+        </div>
+      </section>
+
+      <div class="workbench">
+        <!-- Primary Chart / Graph Surface -->
+        <section id="rnnStage" class="stage-panel" aria-label="SentimentRNN synaptic graph">
+          <div class="stage-header">
+            <h2 class="stage-title">Synaptic activations and sentiment trajectory</h2>
+            <div class="legend-inline">
+              <span class="legend-key"><span class="legend-dot" style="background: var(--pos)"></span> Positive</span>
+              <span class="legend-key"><span class="legend-dot" style="background: var(--neg)"></span> Negative</span>
+              <span class="legend-key"><span class="legend-dot" style="background: var(--amber)"></span> Out of vocab</span>
+            </div>
+          </div>
+
+          <div class="canvas-well">
+            <canvas id="rnnCanvas"></canvas>
+            <canvas id="trajCanvas" aria-label="Word-by-word P(positive) trajectory"></canvas>
+            <div class="tooltip" id="rnnTooltip"></div>
+          </div>
+
+          <div class="transport">
+            <button id="playBtn" class="btn-icon" type="button">Play</button>
+            <button id="prevBtn" class="btn-icon" type="button" aria-label="Previous word">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <button id="nextBtn" class="btn-icon" type="button" aria-label="Next word">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <input id="rnnScrubber" class="scrubber" type="range" min="0" max="0" value="0" aria-label="Word timestep" />
+            <select id="speedSelect" aria-label="Playback speed">
+              <option value="850">0.6x</option>
+              <option value="480" selected>1.0x</option>
+              <option value="220">2.0x</option>
+            </select>
+          </div>
+
+          <div class="token-strip" id="rnnTokenStrip"></div>
+        </section>
+
+        <section id="tfStage" class="stage-panel hidden" aria-label="DistilBERT attention graph">
+          <div class="stage-header">
+            <h2 class="stage-title">Multi-head self-attention</h2>
+            <div class="transport">
+              <select id="tfLayerSelect" aria-label="Transformer layer"></select>
+              <select id="tfHeadSelect" aria-label="Attention head"></select>
+            </div>
+          </div>
+
+          <div class="canvas-well">
+            <canvas id="tfCanvas"></canvas>
+            <div class="tooltip" id="tfTooltip"></div>
+          </div>
+
+          <div class="token-strip" id="tfTokenStrip"></div>
+        </section>
+
+        <!-- Right Narrow Inspector Rail -->
+        <aside class="rail-panel" aria-label="Layer inspector">
+          <div id="rnnRail">
+            <div class="rail-block">
+              <div class="rail-head">
+                <h3 class="rail-title" id="rnnRailTitle">Top hidden contributors</h3>
+                <span class="rail-meta" id="rnnLogitMeta">logit 0.00</span>
+              </div>
+              <div class="ranked-list" id="rnnContribList"></div>
+            </div>
+
+            <div class="rail-block" style="margin-top: 20px;">
+              <div class="rail-head">
+                <h3 class="rail-title">Hidden layer snapshot</h3>
+                <span class="rail-meta">64 of 256</span>
+              </div>
+              <div class="strip-grid" id="rnnStripGrid"></div>
+            </div>
+          </div>
+
+          <div id="tfRail" class="hidden">
+            <div class="rail-block">
+              <div class="rail-head">
+                <h3 class="rail-title">Strongest attention targets</h3>
+                <span class="rail-meta" id="tfFocusTokenMeta">[CLS]</span>
+              </div>
+              <div class="ranked-list" id="tfAttnList"></div>
+            </div>
+
+            <div class="rail-block" style="margin-top: 20px;">
+              <div class="rail-head">
+                <h3 class="rail-title">[CLS] block norms</h3>
+                <span class="rail-meta">768-dim</span>
+              </div>
+              <div class="ranked-list" id="tfLayerNormList"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- __CINEMANIA_BOOTSTRAP__ -->
+  <script>
+    (() => {
+      const BOOT = window.__CINEMANIA_BOOTSTRAP__ || { liveMode: false, presets: [], precomputed: {} };
+
+      const els = {
+        modeLabel: document.getElementById("modeLabel"),
+        navRnn: document.getElementById("navRnn"),
+        navTf: document.getElementById("navTf"),
+        reviewInput: document.getElementById("reviewInput"),
+        analyzeBtn: document.getElementById("analyzeBtn"),
+        statusMsg: document.getElementById("statusMsg"),
+        presetList: document.getElementById("presetList"),
+        crumbModel: document.getElementById("crumbModel"),
+        crumbDetail: document.getElementById("crumbDetail"),
+        pageTitle: document.getElementById("pageTitle"),
+        pageTimecode: document.getElementById("pageTimecode"),
+        statRnnConf: document.getElementById("statRnnConf"),
+        statRnnVerdict: document.getElementById("statRnnVerdict"),
+        statTfConf: document.getElementById("statTfConf"),
+        statTfVerdict: document.getElementById("statTfVerdict"),
+        statTokens: document.getElementById("statTokens"),
+        statOov: document.getElementById("statOov"),
+        statActiveLabel: document.getElementById("statActiveLabel"),
+        statActiveVal: document.getElementById("statActiveVal"),
+        statActiveSub: document.getElementById("statActiveSub"),
+        rnnStage: document.getElementById("rnnStage"),
+        tfStage: document.getElementById("tfStage"),
+        rnnRail: document.getElementById("rnnRail"),
+        tfRail: document.getElementById("tfRail"),
+        rnnCanvas: document.getElementById("rnnCanvas"),
+        trajCanvas: document.getElementById("trajCanvas"),
+        rnnTooltip: document.getElementById("rnnTooltip"),
+        playBtn: document.getElementById("playBtn"),
+        prevBtn: document.getElementById("prevBtn"),
+        nextBtn: document.getElementById("nextBtn"),
+        rnnScrubber: document.getElementById("rnnScrubber"),
+        speedSelect: document.getElementById("speedSelect"),
+        rnnTokenStrip: document.getElementById("rnnTokenStrip"),
+        rnnLogitMeta: document.getElementById("rnnLogitMeta"),
+        rnnContribList: document.getElementById("rnnContribList"),
+        rnnStripGrid: document.getElementById("rnnStripGrid"),
+        tfLayerSelect: document.getElementById("tfLayerSelect"),
+        tfHeadSelect: document.getElementById("tfHeadSelect"),
+        tfCanvas: document.getElementById("tfCanvas"),
+        tfTooltip: document.getElementById("tfTooltip"),
+        tfTokenStrip: document.getElementById("tfTokenStrip"),
+        tfFocusTokenMeta: document.getElementById("tfFocusTokenMeta"),
+        tfAttnList: document.getElementById("tfAttnList"),
+        tfLayerNormList: document.getElementById("tfLayerNormList"),
+      };
+
+      const state = {
+        trace: null,
+        activeTab: "rnn",
+        rnnStep: 0,
+        playing: false,
+        playTimer: null,
+        rnnNodes: [],
+        rnnHoverNode: null,
+        trajPoints: [],
+        tfLayer: 5,
+        tfHead: "avg",
+        tfSelectedToken: 0,
+        tfHoveredToken: null,
+        tfTokenNodes: [],
+      };
+
+      els.modeLabel.textContent = BOOT.liveMode ? "Live PyTorch" : "Offline snapshot";
+      if (!BOOT.liveMode) {
+        els.analyzeBtn.textContent = "Load preset";
+      }
+
+      for (let i = 0; i < 64; i++) {
+        const cell = document.createElement("div");
+        cell.className = "strip-cell";
+        els.rnnStripGrid.appendChild(cell);
+      }
+
+      const presetLabels = {
+        "negative-oriented": "Negative example",
+        "positive-oriented": "Positive example",
+        "mixed": "Mixed sentiment",
+        "strong-positive": "Strong positive",
+        "strong-negative": "Strong negative",
+      };
+
+      BOOT.presets.forEach((p, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "nav-row";
+        btn.title = p.review;
+
+        const dot = document.createElement("span");
+        dot.className = "preset-dot";
+        const pre = BOOT.precomputed && BOOT.precomputed[p.review];
+        if (pre) dot.classList.add(pre.transformer.final_prediction.label);
+
+        const label = document.createElement("span");
+        label.className = "row-label";
+        label.textContent = presetLabels[p.category] || `Sample ${idx + 1}`;
+
+        btn.appendChild(dot);
+        btn.appendChild(label);
+        btn.addEventListener("click", () => {
+          els.reviewInput.value = p.review;
+          loadReview(p.review);
+        });
+        els.presetList.appendChild(btn);
+      });
+
+      function highlightPreset(text) {
+        els.presetList.querySelectorAll(".nav-row").forEach((b) => {
+          b.classList.toggle("active", b.title === text);
+        });
+      }
+
+      async function loadReview(text) {
+        const trimmed = text.trim();
+        if (!trimmed) {
+          els.statusMsg.textContent = "Enter a non-empty movie review";
+          return;
+        }
+        els.statusMsg.textContent = "";
+        highlightPreset(trimmed);
+
+        if (BOOT.precomputed && BOOT.precomputed[trimmed]) {
+          applyTrace(BOOT.precomputed[trimmed]);
+          return;
+        }
+
+        if (!BOOT.liveMode) {
+          els.statusMsg.textContent = "Run `uv run cinemania-viz` to analyze custom text";
+          return;
+        }
+
+        els.analyzeBtn.disabled = true;
+        els.analyzeBtn.textContent = "Inspecting...";
+        try {
+          const resp = await fetch("/api/inspect", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ review: trimmed }),
+          });
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.error || "Inference failed");
+          BOOT.precomputed[trimmed] = data;
+          applyTrace(data);
+        } catch (err) {
+          els.statusMsg.textContent = err.message || "Request failed";
+        } finally {
+          els.analyzeBtn.disabled = false;
+          els.analyzeBtn.textContent = "Analyze review";
+        }
+      }
+
+      function applyTrace(trace) {
+        stopPlayback();
+        state.trace = trace;
+        state.rnnStep = Math.max(0, trace.rnn.steps.length - 1);
+        state.rnnHoverNode = null;
+        state.tfLayer = Math.max(0, trace.transformer.num_layers - 1);
+        state.tfHead = "avg";
+        state.tfSelectedToken = 0;
+        state.tfHoveredToken = null;
+
+        setupRnnControls(trace.rnn);
+        setupTfControls(trace.transformer);
+        updateHeaderAndStats();
+        drawActiveView();
+      }
+
+      function formatPct(p) {
+        return `${(p * 100).toFixed(1)}%`;
+      }
+
+      function formatSigned(v) {
+        return `${v >= 0 ? "+" : ""}${v.toFixed(3)}`;
+      }
+
+      function padTwo(n) {
+        return String(n).padStart(2, "0");
+      }
+
+      function updateHeaderAndStats() {
+        if (!state.trace) return;
+        const r = state.trace.rnn;
+        const t = state.trace.transformer;
+
+        els.statRnnConf.textContent = formatPct(r.final_prediction.confidence);
+        els.statRnnVerdict.textContent = r.final_prediction.label === "positive" ? "Positive" : "Negative";
+        els.statRnnVerdict.className = `stat-delta ${r.final_prediction.label}`;
+
+        els.statTfConf.textContent = formatPct(t.final_prediction.confidence);
+        els.statTfVerdict.textContent = t.final_prediction.label === "positive" ? "Positive" : "Negative";
+        els.statTfVerdict.className = `stat-delta ${t.final_prediction.label}`;
+
+        if (state.activeTab === "rnn") {
+          const oovCount = r.steps.filter((s) => !s.in_vocab).length;
+          const step = r.steps[state.rnnStep];
+          els.crumbModel.textContent = "SentimentRNN";
+          els.crumbDetail.textContent = "Embedding(128) to RNN(256) to Sigmoid";
+          els.pageTitle.textContent = "Recurrent signal trace";
+          els.pageTimecode.textContent = `${padTwo(state.rnnStep + 1)} / ${padTwo(r.steps.length)}`;
+
+          els.statTokens.textContent = String(r.total_tokens);
+          els.statOov.textContent = `${oovCount} out of vocab`;
+
+          els.statActiveLabel.textContent = "Step probability";
+          els.statActiveVal.textContent = formatPct(step.prob_positive);
+          els.statActiveSub.textContent = `Token: ${step.token}`;
+          els.statActiveSub.className = "stat-delta";
+        } else {
+          const focusIdx = state.tfHoveredToken !== null ? state.tfHoveredToken : state.tfSelectedToken;
+          const focusTok = t.tokens[focusIdx] || "[CLS]";
+          els.crumbModel.textContent = "DistilBERT";
+          els.crumbDetail.textContent = `${t.num_layers} layers, ${t.num_heads} heads, ${t.hidden_size} hidden`;
+          els.pageTitle.textContent = "Self-attention inspector";
+          els.pageTimecode.textContent = `Layer ${state.tfLayer + 1} of ${t.num_layers}`;
+
+          els.statTokens.textContent = String(t.tokens.length);
+          els.statOov.textContent = "WordPiece subwords";
+
+          els.statActiveLabel.textContent = "Focus token";
+          els.statActiveVal.textContent = focusTok;
+          els.statActiveSub.textContent = state.tfHead === "avg" ? "12-head average" : `Head ${Number(state.tfHead) + 1}`;
+          els.statActiveSub.className = "stat-delta";
+        }
+      }
+
+      function setupRnnControls(rnn) {
+        els.rnnScrubber.max = String(Math.max(0, rnn.steps.length - 1));
+        els.rnnScrubber.value = String(state.rnnStep);
+        els.rnnTokenStrip.replaceChildren();
+        rnn.steps.forEach((s, idx) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "token-btn";
+          if (!s.in_vocab) {
+            const dot = document.createElement("span");
+            dot.className = "unk-dot";
+            btn.appendChild(dot);
+          }
+          const span = document.createElement("span");
+          span.textContent = s.token;
+          btn.appendChild(span);
+          btn.addEventListener("click", () => {
+            stopPlayback();
+            setRnnStep(idx);
+          });
+          els.rnnTokenStrip.appendChild(btn);
+        });
+        setRnnStep(state.rnnStep);
+      }
+
+      function setRnnStep(idx) {
+        if (!state.trace) return;
+        const steps = state.trace.rnn.steps;
+        state.rnnStep = Math.max(0, Math.min(idx, steps.length - 1));
+        els.rnnScrubber.value = String(state.rnnStep);
+        els.rnnTokenStrip.querySelectorAll(".token-btn").forEach((b, i) => {
+          b.classList.toggle("active", i === state.rnnStep);
+        });
+
+        const step = steps[state.rnnStep];
+        const cells = els.rnnStripGrid.children;
+        step.hidden_strip.forEach((val, i) => {
+          if (!cells[i]) return;
+          const mag = Math.min(1, Math.abs(val));
+          cells[i].style.background =
+            val >= 0
+              ? `rgba(76, 195, 138, ${0.12 + mag * 0.85})`
+              : `rgba(229, 72, 77, ${0.12 + mag * 0.85})`;
+        });
+
+        updateRnnRail();
+        updateHeaderAndStats();
+        drawRnnView();
+      }
+
+      function updateRnnRail() {
+        if (!state.trace) return;
+        const rnn = state.trace.rnn;
+        const step = rnn.steps[state.rnnStep];
+        els.rnnLogitMeta.textContent = `logit ${formatSigned(step.logit)}`;
+
+        const rows = rnn.selected_hidden_indices
+          .map((dimIdx, i) => ({
+            dimIdx,
+            hVal: step.hidden_values[i],
+            outW: rnn.weights.hidden_to_output[i],
+            contrib: step.contributions[i],
+          }))
+          .sort((a, b) => Math.abs(b.contrib) - Math.abs(a.contrib))
+          .slice(0, 7);
+
+        const maxMag = Math.max(0.01, ...rows.map((r) => Math.abs(r.contrib)));
+        els.rnnContribList.replaceChildren();
+        rows.forEach((r) => {
+          const isHover = state.rnnHoverNode && state.rnnHoverNode.kind === "hidden" && state.rnnHoverNode.dimIdx === r.dimIdx;
+          const row = document.createElement("div");
+          row.className = `ranked-row${isHover ? " highlight" : ""}`;
+
+          const name = document.createElement("span");
+          name.className = "ranked-name";
+          name.textContent = `Hidden #${r.dimIdx}`;
+
+          const val = document.createElement("span");
+          val.className = "ranked-val";
+          val.textContent = formatSigned(r.contrib);
+
+          const track = document.createElement("div");
+          track.className = "ranked-bar-track";
+          const fill = document.createElement("div");
+          fill.className = "ranked-bar-fill";
+          fill.style.width = `${Math.min(100, (Math.abs(r.contrib) / maxMag) * 100).toFixed(1)}%`;
+          fill.style.background = r.contrib >= 0 ? "var(--pos)" : "var(--neg)";
+          track.appendChild(fill);
+
+          row.appendChild(name);
+          row.appendChild(val);
+          row.appendChild(track);
+          els.rnnContribList.appendChild(row);
+        });
+      }
+
+      function setupTfControls(tf) {
+        els.tfLayerSelect.replaceChildren();
+        for (let i = 0; i < tf.num_layers; i++) {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = `Layer ${i + 1}`;
+          els.tfLayerSelect.appendChild(opt);
+        }
+        els.tfLayerSelect.value = String(state.tfLayer);
+
+        els.tfHeadSelect.replaceChildren();
+        const avgOpt = document.createElement("option");
+        avgOpt.value = "avg";
+        avgOpt.textContent = "12-head average";
+        els.tfHeadSelect.appendChild(avgOpt);
+        for (let h = 0; h < tf.num_heads; h++) {
+          const opt = document.createElement("option");
+          opt.value = String(h);
+          opt.textContent = `Head ${h + 1}`;
+          els.tfHeadSelect.appendChild(opt);
+        }
+        els.tfHeadSelect.value = String(state.tfHead);
+
+        els.tfTokenStrip.replaceChildren();
+        tf.tokens.forEach((tok, idx) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `token-btn${idx === state.tfSelectedToken ? " active" : ""}`;
+          btn.textContent = tok;
+          btn.addEventListener("click", () => {
+            state.tfSelectedToken = idx;
+            updateTfTokenButtons();
+            updateTfRail();
+            updateHeaderAndStats();
+            drawTfView();
+          });
+          els.tfTokenStrip.appendChild(btn);
+        });
+
+        updateTfRail();
+      }
+
+      function updateTfTokenButtons() {
+        els.tfTokenStrip.querySelectorAll(".token-btn").forEach((b, i) => {
+          b.classList.toggle("active", i === state.tfSelectedToken);
+        });
+      }
+
+      function updateTfRail() {
+        if (!state.trace) return;
+        const tf = state.trace.transformer;
+        const focusIdx = state.tfHoveredToken !== null ? state.tfHoveredToken : state.tfSelectedToken;
+        const focusTok = tf.tokens[focusIdx] || "[CLS]";
+        els.tfFocusTokenMeta.textContent = focusTok;
+
+        const layerObj = tf.attentions[state.tfLayer];
+        const matrix = state.tfHead === "avg" ? layerObj.avg : layerObj.heads[Number(state.tfHead)];
+        const weights = matrix[focusIdx] || [];
+
+        const ranked = weights
+          .map((w, idx) => ({ tok: tf.tokens[idx], idx, w }))
+          .sort((a, b) => b.w - a.w)
+          .slice(0, 6);
+
+        const maxW = Math.max(0.01, ...ranked.map((r) => r.w));
+        els.tfAttnList.replaceChildren();
+        ranked.forEach((r) => {
+          const row = document.createElement("div");
+          row.className = "ranked-row";
+
+          const name = document.createElement("span");
+          name.className = "ranked-name";
+          name.textContent = `${r.tok} (${r.idx})`;
+
+          const val = document.createElement("span");
+          val.className = "ranked-val";
+          val.textContent = formatPct(r.w);
+
+          const track = document.createElement("div");
+          track.className = "ranked-bar-track";
+          const fill = document.createElement("div");
+          fill.className = "ranked-bar-fill";
+          fill.style.width = `${((r.w / maxW) * 100).toFixed(1)}%`;
+          fill.style.background = "var(--amber)";
+          track.appendChild(fill);
+
+          row.appendChild(name);
+          row.appendChild(val);
+          row.appendChild(track);
+          els.tfAttnList.appendChild(row);
+        });
+
+        const maxNorm = Math.max(1, ...tf.layer_cls_activity.map((l) => l.cls_norm));
+        els.tfLayerNormList.replaceChildren();
+        tf.layer_cls_activity.forEach((l) => {
+          const isCurrent = l.index === state.tfLayer + 1;
+          const row = document.createElement("div");
+          row.className = `ranked-row${isCurrent ? " highlight" : ""}`;
+
+          const name = document.createElement("span");
+          name.className = "ranked-name";
+          name.textContent = l.name;
+
+          const val = document.createElement("span");
+          val.className = "ranked-val";
+          val.textContent = l.cls_norm.toFixed(2);
+
+          const track = document.createElement("div");
+          track.className = "ranked-bar-track";
+          const fill = document.createElement("div");
+          fill.className = "ranked-bar-fill";
+          fill.style.width = `${((l.cls_norm / maxNorm) * 100).toFixed(1)}%`;
+          fill.style.background = isCurrent ? "var(--amber)" : "var(--text-secondary)";
+          track.appendChild(fill);
+
+          row.appendChild(name);
+          row.appendChild(val);
+          row.appendChild(track);
+          els.tfLayerNormList.appendChild(row);
+        });
+      }
+
+      function sizeCanvas(canvas, minH) {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const w = Math.max(320, Math.floor(rect.width));
+        const h = Math.max(minH, Math.floor(rect.height));
+        if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+          canvas.width = w * dpr;
+          canvas.height = h * dpr;
+        }
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { ctx, w, h };
+      }
+
+      function signedRGBA(val, alpha) {
+        return val >= 0
+          ? `rgba(76, 195, 138, ${alpha})`
+          : `rgba(229, 72, 77, ${alpha})`;
+      }
+
+      function drawRnnView() {
+        if (!state.trace || state.activeTab !== "rnn") return;
+        drawRnnGraph();
+        drawTrajectory();
+      }
+
+      function drawRnnGraph() {
+        const { ctx, w, h } = sizeCanvas(els.rnnCanvas, 360);
+        ctx.clearRect(0, 0, w, h);
+
+        const rnn = state.trace.rnn;
+        const step = rnn.steps[state.rnnStep];
+        const embCount = step.embed_values.length;
+        const hidCount = step.hidden_values.length;
+
+        const xTok = w * 0.11;
+        const xEmb = w * 0.34;
+        const xHid = w * 0.64;
+        const xOut = w * 0.89;
+        const padTop = 48;
+        const padBot = 24;
+        const usableH = h - padTop - padBot;
+
+        // Subtle column guides
+        ctx.strokeStyle = "rgba(237, 237, 237, 0.04)";
+        ctx.lineWidth = 1;
+        [xTok, xEmb, xHid, xOut].forEach((cx) => {
+          ctx.beginPath();
+          ctx.moveTo(cx, padTop - 6);
+          ctx.lineTo(cx, h - padBot + 6);
+          ctx.stroke();
+        });
+
+        // Sentence-case column labels
+        ctx.font = '400 12px "IBM Plex Sans", system-ui, sans-serif';
+        ctx.fillStyle = "#85858b";
+        ctx.textAlign = "center";
+        ctx.fillText("Current token", xTok, 24);
+        ctx.fillText(`Embedding (${embCount} of 128)`, xEmb, 24);
+        ctx.fillText(`Hidden (${hidCount} of 256)`, xHid, 24);
+        ctx.fillText("Sigmoid output", xOut, 24);
+
+        const embNodes = step.embed_values.map((val, i) => ({
+          kind: "embed",
+          idx: i,
+          dimIdx: rnn.selected_embed_indices[i],
+          x: xEmb,
+          y: padTop + ((i + 0.5) / embCount) * usableH,
+          val,
+        }));
+
+        const hidNodes = step.hidden_values.map((val, i) => ({
+          kind: "hidden",
+          idx: i,
+          dimIdx: rnn.selected_hidden_indices[i],
+          x: xHid,
+          y: padTop + ((i + 0.5) / hidCount) * usableH,
+          val,
+          contrib: step.contributions[i],
+          outW: rnn.weights.hidden_to_output[i],
+        }));
+
+        const tokNode = { x: xTok, y: padTop + usableH * 0.5 };
+        const outNode = { kind: "output", x: xOut, y: padTop + usableH * 0.5, prob: step.prob_positive, logit: step.logit };
+        const hov = state.rnnHoverNode;
+
+        // 1. Token -> Embedding cubic Beziers
+        embNodes.forEach((en) => {
+          const mag = Math.min(1, Math.abs(en.val));
+          const dimmed = hov && !(hov.kind === "embed" && hov.idx === en.idx);
+          const alpha = dimmed ? 0.06 : 0.14 + mag * 0.5;
+          ctx.beginPath();
+          ctx.moveTo(tokNode.x + 48, tokNode.y);
+          ctx.bezierCurveTo(tokNode.x + 110, tokNode.y, en.x - 70, en.y, en.x - 10, en.y);
+          ctx.strokeStyle = signedRGBA(en.val, alpha);
+          ctx.lineWidth = dimmed ? 0.8 : 0.8 + mag * 1.8;
+          ctx.stroke();
+        });
+
+        // 2. Embedding -> Hidden cubic Beziers
+        const wIH = rnn.weights.embed_to_hidden;
+        for (let hi = 0; hi < hidNodes.length; hi++) {
+          for (let ei = 0; ei < embNodes.length; ei++) {
+            const signal = wIH[hi][ei] * embNodes[ei].val;
+            const mag = Math.min(1, Math.abs(signal) * 1.5);
+            if (mag < 0.09) continue;
+            const connected =
+              !hov ||
+              (hov.kind === "embed" && hov.idx === ei) ||
+              (hov.kind === "hidden" && hov.idx === hi);
+            const alpha = connected ? 0.08 + mag * 0.48 : 0.03;
+            ctx.beginPath();
+            ctx.moveTo(embNodes[ei].x + 10, embNodes[ei].y);
+            ctx.bezierCurveTo(
+              embNodes[ei].x + 80,
+              embNodes[ei].y,
+              hidNodes[hi].x - 80,
+              hidNodes[hi].y,
+              hidNodes[hi].x - 10,
+              hidNodes[hi].y
+            );
+            ctx.strokeStyle = signedRGBA(signal, alpha);
+            ctx.lineWidth = connected ? 0.7 + mag * 1.8 : 0.6;
+            ctx.stroke();
+          }
+        }
+
+        // 3. Recurrent W_hh self-loops
+        const wHH = rnn.weights.hidden_to_hidden;
+        hidNodes.forEach((hn, idx) => {
+          const selfW = wHH[idx][idx];
+          const active = !hov || (hov.kind === "hidden" && hov.idx === idx);
+          ctx.beginPath();
+          ctx.arc(hn.x, hn.y - 10, 8, Math.PI * 0.85, Math.PI * 0.15, false);
+          ctx.strokeStyle = signedRGBA(selfW, active ? 0.45 : 0.08);
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        });
+
+        // 4. Hidden -> Output cubic Beziers
+        hidNodes.forEach((hn) => {
+          const mag = Math.min(1, Math.abs(hn.contrib) * 0.85);
+          const connected = !hov || hov.kind === "output" || (hov.kind === "hidden" && hov.idx === hn.idx);
+          const alpha = connected ? 0.14 + mag * 0.72 : 0.05;
+          ctx.beginPath();
+          ctx.moveTo(hn.x + 10, hn.y);
+          ctx.bezierCurveTo(hn.x + 76, hn.y, outNode.x - 96, outNode.y, outNode.x - 32, outNode.y);
+          ctx.strokeStyle = signedRGBA(hn.contrib, alpha);
+          ctx.lineWidth = connected ? 0.9 + mag * 3.0 : 0.7;
+          ctx.stroke();
+        });
+
+        // Token node
+        ctx.fillStyle = "#19191b";
+        ctx.strokeStyle = step.in_vocab ? "rgba(237, 237, 237, 0.25)" : "#e5a93c";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(tokNode.x - 48, tokNode.y - 22, 96, 44, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#ededed";
+        ctx.font = '500 13px "IBM Plex Mono", monospace';
+        ctx.fillText(step.token.slice(0, 10), tokNode.x, tokNode.y - 1);
+        ctx.fillStyle = "#85858b";
+        ctx.font = '400 11px "IBM Plex Mono", monospace';
+        ctx.fillText(`id ${step.token_id}`, tokNode.x, tokNode.y + 14);
+
+        const hitNodes = [];
+
+        embNodes.forEach((en) => {
+          const mag = Math.min(1, Math.abs(en.val));
+          const isHov = hov && hov.kind === "embed" && hov.idx === en.idx;
+          ctx.beginPath();
+          ctx.arc(en.x, en.y, isHov ? 10 : 8.5, 0, Math.PI * 2);
+          ctx.fillStyle = signedRGBA(en.val, 0.2 + mag * 0.75);
+          ctx.fill();
+          ctx.strokeStyle = isHov ? "#ededed" : signedRGBA(en.val, 0.9);
+          ctx.lineWidth = isHov ? 2 : 1.25;
+          ctx.stroke();
+          hitNodes.push({
+            ...en,
+            r: 12,
+            text: `Embedding #${en.dimIdx}\nActivation: ${formatSigned(en.val)}`,
+          });
+        });
+
+        hidNodes.forEach((hn) => {
+          const mag = Math.min(1, Math.abs(hn.val));
+          const isHov = hov && hov.kind === "hidden" && hov.idx === hn.idx;
+          ctx.beginPath();
+          ctx.arc(hn.x, hn.y, isHov ? 10 : 8.5, 0, Math.PI * 2);
+          ctx.fillStyle = signedRGBA(hn.val, 0.22 + mag * 0.75);
+          ctx.fill();
+          ctx.strokeStyle = isHov ? "#ededed" : signedRGBA(hn.val, 0.9);
+          ctx.lineWidth = isHov ? 2 : 1.25;
+          ctx.stroke();
+          hitNodes.push({
+            ...hn,
+            r: 12,
+            text:
+              `Hidden #${hn.dimIdx}\n` +
+              `h_t: ${formatSigned(hn.val)}\n` +
+              `w_fc: ${formatSigned(hn.outW)}\n` +
+              `contrib: ${formatSigned(hn.contrib)}`,
+          });
+        });
+
+        const isPos = outNode.prob >= 0.5;
+        ctx.beginPath();
+        ctx.arc(outNode.x, outNode.y, 30, 0, Math.PI * 2);
+        ctx.fillStyle = isPos ? "rgba(76, 195, 138, 0.16)" : "rgba(229, 72, 77, 0.16)";
+        ctx.fill();
+        ctx.strokeStyle = isPos ? "#4cc38a" : "#e5484d";
+        ctx.lineWidth = 1.75;
+        ctx.stroke();
+
+        ctx.fillStyle = "#ededed";
+        ctx.font = '500 12px "IBM Plex Mono", monospace';
+        ctx.fillText(isPos ? "Positive" : "Negative", outNode.x, outNode.y - 3);
+        ctx.fillStyle = "#a1a1a6";
+        ctx.font = '400 11px "IBM Plex Mono", monospace';
+        ctx.fillText(formatPct(outNode.prob), outNode.x, outNode.y + 13);
+
+        hitNodes.push({
+          ...outNode,
+          r: 32,
+          text:
+            `Sigmoid output\n` +
+            `Logit: ${formatSigned(outNode.logit)} (bias ${formatSigned(rnn.weights.fc_bias)})\n` +
+            `P(positive): ${outNode.prob.toFixed(4)}`,
+        });
+
+        state.rnnNodes = hitNodes;
+      }
+
+      function drawTrajectory() {
+        const { ctx, w, h } = sizeCanvas(els.trajCanvas, 100);
+        ctx.clearRect(0, 0, w, h);
+
+        const steps = state.trace.rnn.steps;
+        const padL = 56;
+        const padR = 24;
+        const padT = 18;
+        const padB = 22;
+        const plotW = w - padL - padR;
+        const plotH = h - padT - padB;
+
+        // Muted 50% threshold hairline
+        const midY = padT + plotH * 0.5;
+        ctx.strokeStyle = "rgba(237, 237, 237, 0.12)";
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(padL, midY);
+        ctx.lineTo(w - padR, midY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#85858b";
+        ctx.font = '400 11px "IBM Plex Mono", monospace';
+        ctx.textAlign = "right";
+        ctx.fillText("100%", padL - 8, padT + 4);
+        ctx.fillText("50%", padL - 8, midY + 4);
+        ctx.fillText("0%", padL - 8, padT + plotH + 4);
+
+        const points = steps.map((s, i) => ({
+          x: steps.length === 1 ? padL + plotW * 0.5 : padL + (i / (steps.length - 1)) * plotW,
+          y: padT + (1 - s.prob_positive) * plotH,
+          prob: s.prob_positive,
+          step: i,
+        }));
+        state.trajPoints = points;
+
+        if (points.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(points[0].x, points[0].y);
+          for (let i = 1; i < points.length; i++) {
+            const cx = (points[i - 1].x + points[i].x) / 2;
+            ctx.bezierCurveTo(cx, points[i - 1].y, cx, points[i].y, points[i].x, points[i].y);
+          }
+          ctx.strokeStyle = "#a1a1a6";
+          ctx.lineWidth = 1.75;
+          ctx.stroke();
+        }
+
+        points.forEach((p) => {
+          const isCur = p.step === state.rnnStep;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, isCur ? 5 : 3, 0, Math.PI * 2);
+          ctx.fillStyle = p.prob >= 0.5 ? "#4cc38a" : "#e5484d";
+          ctx.fill();
+          if (isCur) {
+            ctx.strokeStyle = "#ededed";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+        });
+      }
+
+      function drawTfView() {
+        if (!state.trace || state.activeTab !== "tf") return;
+        const tf = state.trace.transformer;
+        const tokens = tf.tokens;
+        const n = tokens.length;
+
+        const targetH = Math.min(620, Math.max(420, n * 32 + 64));
+        els.tfCanvas.style.height = `${targetH}px`;
+        const { ctx, w, h } = sizeCanvas(els.tfCanvas, targetH);
+        ctx.clearRect(0, 0, w, h);
+
+        const layerObj = tf.attentions[state.tfLayer];
+        const matrix = state.tfHead === "avg" ? layerObj.avg : layerObj.heads[Number(state.tfHead)];
+        const focusIdx = state.tfHoveredToken !== null ? state.tfHoveredToken : state.tfSelectedToken;
+        const weights = matrix[focusIdx] || [];
+
+        const padTop = 44;
+        const padBot = 24;
+        const usableH = h - padTop - padBot;
+        const leftX = Math.max(124, w * 0.2);
+        const rightX = Math.min(w - 150, w * 0.8);
+        const boxW = 96;
+        const boxH = Math.min(26, Math.max(18, usableH / Math.max(n, 1) - 4));
+
+        ctx.font = '400 12px "IBM Plex Sans", system-ui, sans-serif';
+        ctx.fillStyle = "#85858b";
+        ctx.textAlign = "center";
+        ctx.fillText("Query token", leftX, 22);
+        ctx.fillText("Attended key token", rightX, 22);
+
+        const leftNodes = tokens.map((tok, i) => ({
+          idx: i,
+          tok,
+          x: leftX,
+          y: padTop + ((i + 0.5) / Math.max(n, 1)) * usableH,
+        }));
+        const rightNodes = tokens.map((tok, i) => ({
+          idx: i,
+          tok,
+          x: rightX,
+          y: padTop + ((i + 0.5) / Math.max(n, 1)) * usableH,
+        }));
+
+        // Faint background threads for non-focused tokens
+        for (let i = 0; i < n; i++) {
+          if (i === focusIdx) continue;
+          const row = matrix[i] || [];
+          for (let j = 0; j < n; j++) {
+            if (row[j] < 0.14) continue;
+            ctx.beginPath();
+            ctx.moveTo(leftNodes[i].x + boxW / 2, leftNodes[i].y);
+            ctx.bezierCurveTo(
+              leftX + (rightX - leftX) * 0.45,
+              leftNodes[i].y,
+              rightX - (rightX - leftX) * 0.45,
+              rightNodes[j].y,
+              rightNodes[j].x - boxW / 2,
+              rightNodes[j].y
+            );
+            ctx.strokeStyle = "rgba(237, 237, 237, 0.05)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+
+        // Focused token warm amber ribbons
+        const src = leftNodes[focusIdx];
+        for (let j = 0; j < n; j++) {
+          const weight = weights[j] || 0;
+          if (weight < 0.015) continue;
+          const dst = rightNodes[j];
+          ctx.beginPath();
+          ctx.moveTo(src.x + boxW / 2, src.y);
+          ctx.bezierCurveTo(
+            leftX + (rightX - leftX) * 0.45,
+            src.y,
+            rightX - (rightX - leftX) * 0.45,
+            dst.y,
+            dst.x - boxW / 2,
+            dst.y
+          );
+          ctx.strokeStyle = `rgba(229, 169, 60, ${Math.min(0.95, 0.18 + weight * 1.4)})`;
+          ctx.lineWidth = 1 + weight * 6.5;
+          ctx.stroke();
+        }
+
+        const hitNodes = [];
+        leftNodes.forEach((node) => {
+          const isFocus = node.idx === focusIdx;
+          ctx.fillStyle = isFocus ? "#232325" : "#141415";
+          ctx.strokeStyle = isFocus ? "#e5a93c" : "rgba(237, 237, 237, 0.1)";
+          ctx.lineWidth = isFocus ? 1.5 : 1;
+          ctx.beginPath();
+          ctx.roundRect(node.x - boxW / 2, node.y - boxH / 2, boxW, boxH, 6);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = isFocus ? "#ededed" : "#a1a1a6";
+          ctx.font = '400 12px "IBM Plex Mono", monospace';
+          ctx.textAlign = "center";
+          ctx.fillText(node.tok.slice(0, 10), node.x, node.y + 4);
+
+          hitNodes.push({
+            idx: node.idx,
+            x: node.x,
+            y: node.y,
+            w: boxW,
+            h: boxH,
+            text: `Token: ${node.tok}\nPosition: ${node.idx}\nClick to lock focus`,
+          });
+        });
+
+        rightNodes.forEach((node) => {
+          const attnW = weights[node.idx] || 0;
+          ctx.fillStyle = attnW > 0.06 ? `rgba(229, 169, 60, ${0.08 + attnW * 0.35})` : "#141415";
+          ctx.strokeStyle = attnW > 0.1 ? "rgba(229, 169, 60, 0.7)" : "rgba(237, 237, 237, 0.08)";
+          ctx.lineWidth = attnW > 0.1 ? 1.25 : 1;
+          ctx.beginPath();
+          ctx.roundRect(node.x - boxW / 2, node.y - boxH / 2, boxW, boxH, 6);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = attnW > 0.08 ? "#ededed" : "#85858b";
+          ctx.font = '400 12px "IBM Plex Mono", monospace';
+          ctx.textAlign = "center";
+          ctx.fillText(node.tok.slice(0, 10), node.x, node.y + 4);
+
+          ctx.textAlign = "left";
+          ctx.fillStyle = attnW > 0.08 ? "#e5a93c" : "#85858b";
+          ctx.font = '400 11px "IBM Plex Mono", monospace';
+          ctx.fillText(formatPct(attnW), node.x + boxW / 2 + 10, node.y + 4);
+        });
+
+        state.tfTokenNodes = hitNodes;
+      }
+
+      function drawActiveView() {
+        if (state.activeTab === "rnn") {
+          drawRnnView();
+        } else {
+          drawTfView();
+        }
+      }
+
+      function switchTab(tab) {
+        state.activeTab = tab;
+        const isRnn = tab === "rnn";
+        els.navRnn.classList.toggle("active", isRnn);
+        els.navRnn.setAttribute("aria-selected", String(isRnn));
+        els.navTf.classList.toggle("active", !isRnn);
+        els.navTf.setAttribute("aria-selected", String(!isRnn));
+
+        els.rnnStage.classList.toggle("hidden", !isRnn);
+        els.rnnRail.classList.toggle("hidden", !isRnn);
+        els.tfStage.classList.toggle("hidden", isRnn);
+        els.tfRail.classList.toggle("hidden", isRnn);
+
+        if (!isRnn) stopPlayback();
+        updateHeaderAndStats();
+        drawActiveView();
+      }
+
+      function stopPlayback() {
+        state.playing = false;
+        els.playBtn.textContent = "Play";
+        if (state.playTimer) {
+          clearInterval(state.playTimer);
+          state.playTimer = null;
+        }
+      }
+
+      function startPlayback() {
+        if (!state.trace) return;
+        const steps = state.trace.rnn.steps;
+        if (state.rnnStep >= steps.length - 1) setRnnStep(0);
+        state.playing = true;
+        els.playBtn.textContent = "Pause";
+        state.playTimer = setInterval(() => {
+          if (state.rnnStep >= steps.length - 1) {
+            stopPlayback();
+            return;
+          }
+          setRnnStep(state.rnnStep + 1);
+        }, Number(els.speedSelect.value));
+      }
+
+      // Event Listeners
+      els.analyzeBtn.addEventListener("click", () => loadReview(els.reviewInput.value));
+      els.navRnn.addEventListener("click", () => switchTab("rnn"));
+      els.navTf.addEventListener("click", () => switchTab("tf"));
+
+      els.playBtn.addEventListener("click", () => (state.playing ? stopPlayback() : startPlayback()));
+      els.prevBtn.addEventListener("click", () => {
+        stopPlayback();
+        setRnnStep(state.rnnStep - 1);
+      });
+      els.nextBtn.addEventListener("click", () => {
+        stopPlayback();
+        setRnnStep(state.rnnStep + 1);
+      });
+      els.rnnScrubber.addEventListener("input", (e) => {
+        stopPlayback();
+        setRnnStep(Number(e.target.value));
+      });
+      els.speedSelect.addEventListener("change", () => {
+        if (state.playing) {
+          stopPlayback();
+          startPlayback();
+        }
+      });
+
+      els.tfLayerSelect.addEventListener("change", (e) => {
+        state.tfLayer = Number(e.target.value);
+        updateTfRail();
+        updateHeaderAndStats();
+        drawTfView();
+      });
+      els.tfHeadSelect.addEventListener("change", (e) => {
+        state.tfHead = e.target.value;
+        updateTfRail();
+        updateHeaderAndStats();
+        drawTfView();
+      });
+
+      els.rnnCanvas.addEventListener("mousemove", (e) => {
+        const rect = els.rnnCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const hit = state.rnnNodes.find((n) => Math.hypot(mx - n.x, my - n.y) <= n.r);
+        if (hit !== state.rnnHoverNode) {
+          state.rnnHoverNode = hit || null;
+          updateRnnRail();
+          drawRnnGraph();
+        }
+        if (hit) {
+          els.rnnTooltip.textContent = hit.text;
+          els.rnnTooltip.style.left = `${Math.max(8, Math.min(rect.width - 220, mx + 14))}px`;
+          els.rnnTooltip.style.top = `${Math.max(8, my - 20)}px`;
+          els.rnnTooltip.style.display = "block";
+        } else {
+          els.rnnTooltip.style.display = "none";
+        }
+      });
+
+      els.rnnCanvas.addEventListener("mouseleave", () => {
+        state.rnnHoverNode = null;
+        els.rnnTooltip.style.display = "none";
+        updateRnnRail();
+        drawRnnGraph();
+      });
+
+      els.trajCanvas.addEventListener("click", (e) => {
+        if (!state.trajPoints.length) return;
+        const rect = els.trajCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        let closest = state.trajPoints[0];
+        let bestDist = Infinity;
+        state.trajPoints.forEach((p) => {
+          const d = Math.abs(mx - p.x);
+          if (d < bestDist) {
+            bestDist = d;
+            closest = p;
+          }
+        });
+        stopPlayback();
+        setRnnStep(closest.step);
+      });
+
+      els.tfCanvas.addEventListener("mousemove", (e) => {
+        const rect = els.tfCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const hit = state.tfTokenNodes.find(
+          (n) => Math.abs(mx - n.x) <= n.w / 2 && Math.abs(my - n.y) <= n.h / 2
+        );
+        if (hit) {
+          if (state.tfHoveredToken !== hit.idx) {
+            state.tfHoveredToken = hit.idx;
+            updateTfRail();
+            updateHeaderAndStats();
+            drawTfView();
+          }
+          els.tfTooltip.textContent = hit.text;
+          els.tfTooltip.style.left = `${Math.max(8, Math.min(rect.width - 220, mx + 14))}px`;
+          els.tfTooltip.style.top = `${Math.max(8, my - 12)}px`;
+          els.tfTooltip.style.display = "block";
+        } else {
+          if (state.tfHoveredToken !== null) {
+            state.tfHoveredToken = null;
+            updateTfRail();
+            updateHeaderAndStats();
+            drawTfView();
+          }
+          els.tfTooltip.style.display = "none";
+        }
+      });
+
+      els.tfCanvas.addEventListener("click", (e) => {
+        const rect = els.tfCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const hit = state.tfTokenNodes.find(
+          (n) => Math.abs(mx - n.x) <= n.w / 2 && Math.abs(my - n.y) <= n.h / 2
+        );
+        if (hit) {
+          state.tfSelectedToken = hit.idx;
+          updateTfTokenButtons();
+          updateTfRail();
+          updateHeaderAndStats();
+          drawTfView();
+        }
+      });
+
+      els.tfCanvas.addEventListener("mouseleave", () => {
+        state.tfHoveredToken = null;
+        els.tfTooltip.style.display = "none";
+        updateTfRail();
+        updateHeaderAndStats();
+        drawTfView();
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", (e) => {
+        const tag = (e.target && e.target.tagName) || "";
+        if (tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT") return;
+        if (e.key === "1") {
+          switchTab("rnn");
+        } else if (e.key === "2") {
+          switchTab("tf");
+        } else if (e.key === " ") {
+          if (state.activeTab === "rnn") {
+            e.preventDefault();
+            state.playing ? stopPlayback() : startPlayback();
+          }
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          if (state.activeTab === "rnn") {
+            stopPlayback();
+            setRnnStep(state.rnnStep - 1);
+          } else if (state.trace) {
+            state.tfSelectedToken = Math.max(0, state.tfSelectedToken - 1);
+            updateTfTokenButtons();
+            updateTfRail();
+            updateHeaderAndStats();
+            drawTfView();
+          }
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault();
+          if (state.activeTab === "rnn") {
+            stopPlayback();
+            setRnnStep(state.rnnStep + 1);
+          } else if (state.trace) {
+            state.tfSelectedToken = Math.min(state.trace.transformer.tokens.length - 1, state.tfSelectedToken + 1);
+            updateTfTokenButtons();
+            updateTfRail();
+            updateHeaderAndStats();
+            drawTfView();
+          }
+        }
+      });
+
+      window.addEventListener("resize", drawActiveView);
+
+      const initialPreset =
+        (BOOT.presets[1] && BOOT.presets[1].review) ||
+        (BOOT.presets[0] && BOOT.presets[0].review) ||
+        Object.keys(BOOT.precomputed)[0];
+      if (initialPreset) {
+        els.reviewInput.value = initialPreset;
+        loadReview(initialPreset);
+      }
+    })();
+  </script>
+</body>
+</html>
